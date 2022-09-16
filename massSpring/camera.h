@@ -54,7 +54,7 @@ public:
 
 	glm::mat4 getViewMatrix();
 	void processKeyboard(Camera_Movement dir);
-	void processMovement(float xoffset, float yoffset, GLboolean constraintPitch);
+	void processMovement(float xoffset, float yoffset, GLboolean constraintPitch = true);
 	void processMouseScroll(float yoffset);
 
 private:

@@ -27,7 +27,7 @@ void Camera::processKeyboard(Camera_Movement dir) {
 		position += velocity * right;
 	}
 }
-void Camera::processMovement(float xoffset, float yoffset,GLboolean constraintPitch = true) {
+void Camera::processMovement(float xoffset, float yoffset, GLboolean constraintPitch) {
 	xoffset *= mouseSensitivity;
 	yoffset *= mouseSensitivity;
 
@@ -57,7 +57,7 @@ void Camera::updateCameraVectors() {
 	front.x = cos(radians(pitch)) * cos(radians(yaw));
 	front.y = sin(radians(pitch));
 	front.z = cos(radians(pitch)) * sin(radians(yaw));
-	this->front;
+	this->front=front;
 	this->right = normalize(cross(worldUp,-front));
 	this->up = normalize(cross(right, front));
 }

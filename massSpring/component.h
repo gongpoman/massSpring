@@ -1,14 +1,12 @@
 #pragma once
 
-#include<vector>
-
 #include<glm/glm.hpp>
 
-class Object
+class Component
 {
 public:
-	Object();
-	~Object();
+	Component();
+	~Component();
 
 	virtual void update() = 0;
 	virtual void render() = 0;
@@ -20,16 +18,8 @@ private:
 
 };
 
-Object::Object()
-{
-}
 
-Object::~Object()
-{
-}
-
-
-class FixedPoint : public Object
+class FixedPoint : public Component
 {
 public:
 
@@ -44,16 +34,8 @@ private:
 
 };
 
-FixedPoint::FixedPoint()
-{
-}
 
-FixedPoint::~FixedPoint()
-{
-}
-
-
-class Spring : public Object
+class Spring : public Component
 {
 	// no mass no collision
 	// generating force depends on dL
@@ -71,23 +53,15 @@ private:
 	glm::vec3 pos1;
 	glm::vec3 pos2;
 	
-	Object* connectedObj1;
-	Object* connectedObj2;
+	Component* connectedObj1;
+	Component* connectedObj2;
 };
 
-Spring::Spring()
-{
-}
-
-Spring::~Spring()
-{
-}
-
-class ball : public Object	// only ball collide. DCD
+class Ball : public Component	// only ball collide. DCD
 {
 public:
-	ball();
-	~ball();
+	Ball();
+	~Ball();
 
 	virtual void update();
 	virtual void render();
@@ -98,11 +72,3 @@ private:
 	float density;
 
 };
-
-ball::ball()
-{
-}
-
-ball::~ball()
-{
-}

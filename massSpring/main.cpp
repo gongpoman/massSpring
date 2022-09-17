@@ -8,17 +8,20 @@
 
 #include"shader.h"
 #include"camera.h"
+#include"msSystem.h"
+#include"component.h"
+
 //===========================================================================================================
 #define STB_IMAGE_IMPLEMENTATION
 #include"stb_image.h"
 // temp... delete h file later ===========================================================================
-
 
 const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 float deltaTime= 1/60.0f;
 
 Camera cam(glm::vec3(0.0f,0.0f,3.0f));
+msSystem MSSystem;
 
 float lastX, lastY;
 bool isFirstMove = true;
@@ -207,7 +210,8 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, 0);
         // temp rendering end===============================================================================================================
 
-
+        MSSystem.updateAll();
+        MSSystem.renderAll();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

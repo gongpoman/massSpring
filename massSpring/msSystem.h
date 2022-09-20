@@ -18,10 +18,8 @@ public: // TODO ¸ô¶ú´ø °Å. most vexing https://stackoverflow.com/questions/20871
 
 	std::vector<Component*> components;
 
-	msSystem(){
-	}
-	~msSystem(){
-	}
+	msSystem();
+	~msSystem();
 
 	void updateAll();
 	void renderAll();

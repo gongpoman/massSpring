@@ -174,11 +174,12 @@ int main() {
     //------------------------------------------------------------------------------------------------------------temp setting=================================
 
 	while (!glfwWindowShouldClose(window)) {
-
+        std::cout << "loop start!!!!////////////////////////////////////////////////////////////////////////////////////////////////" << std::endl;
 		processInput(window);
 
-		glClearColor(0.9f, 0.9f, 0.9f, 1.0f );
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+//        glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         //temp rendering=========================================================================================================
         tempShader.use();
@@ -188,7 +189,7 @@ int main() {
 
         glUniformMatrix4fv(glGetUniformLocation(tempShader.ID, "viewMat"), 1, GL_FALSE, &view[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(tempShader.ID, "projMat"), 1, GL_FALSE, &proj[0][0]);
-
+        
 
         glBindVertexArray(VAO);
         glActiveTexture(GL_TEXTURE11);
@@ -208,6 +209,8 @@ int main() {
         glBindVertexArray(0);
         glActiveTexture(GL_TEXTURE11);
         glBindTexture(GL_TEXTURE_2D, 0);
+
+
         // temp rendering end===============================================================================================================
 
         MSSystem.updateAll();
@@ -215,6 +218,8 @@ int main() {
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+        std::cout << "loop end!!!!/////////////////////////////////////////////////////////////////////////////////" << std::endl << std::endl;
+
 	}
 
 	glfwTerminate();

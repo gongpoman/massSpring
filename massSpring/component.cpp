@@ -7,6 +7,7 @@
 
 #include"component.h"
 #include"msSystem.h"
+#include"shader.h"
 
 Component::Component()
 {
@@ -51,6 +52,10 @@ void FixedPoint::render() {
 void FixedPoint::update() {
 
 }
+void FixedPoint::drawSetup() {
+	shaderID = new Shader("resources/shader/box_vs.txt", "resources/shader/box_fs.txt");
+
+}
 
 
 void Spring::render() {
@@ -60,7 +65,13 @@ void Spring::render() {
 void Spring::update() {
 
 }
+void Spring::drawSetup() {
 
+}
+
+void Ball::drawSetup() {
+
+}
 
 void Ball::render() {
 

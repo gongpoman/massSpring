@@ -1,4 +1,5 @@
 #include<iostream>
+#include<vector>
 
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
@@ -10,6 +11,7 @@
 #include"camera.h"
 #include"msSystem.h"
 #include"component.h"
+
 
 //===========================================================================================================
 #define STB_IMAGE_IMPLEMENTATION
@@ -31,7 +33,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-
+extern void __temp_PMPTestMain();
 
 int main() {
 
@@ -62,6 +64,8 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     
     //==============------------------------------------------------------------------------------------------------------------temp setting
+
+    __temp_PMPTestMain(); // TODO DELETE
 
     Shader tempShader("resources/shader/tempBoxvs.txt", "resources/shader/tempBoxfs.txt");
 
@@ -252,7 +256,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
         lastX = xpos;
         lastY = ypos;
     }
-
+    
     float xoffset = static_cast<float>(xpos) - lastX;
     float yoffset = static_cast<float>(ypos) - lastY;
     lastX = xpos;
@@ -263,3 +267,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     cam.processMouseScroll(yoffset);
 }
+

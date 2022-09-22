@@ -21,8 +21,12 @@ public: // TODO ¸ô¶ú´ø °Å. most vexing https://stackoverflow.com/questions/20871
 	msSystem();
 	~msSystem();
 
+	void addComponent(Component*);
+
 	void updateAll();
 	void renderAll();
+
+	void terminate();
 
 private:
 

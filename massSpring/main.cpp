@@ -18,7 +18,7 @@
 #include"stb_image.h"
 // temp... delete h file later ===========================================================================
 
-const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;
+extern const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;    // const global variable은 extern을 붙여줘야 된다. https://community.arm.com/support-forums/f/compilers-and-libraries-forum/47925/c-extern-const-link-error
 
 float deltaTime= 1/60.0f;
 
@@ -33,7 +33,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
-extern void __temp_PMPTestMain();
+void setScene1();
 
 int main() {
 
@@ -65,7 +65,6 @@ int main() {
     
     //==============------------------------------------------------------------------------------------------------------------temp setting
 
-    __temp_PMPTestMain(); // TODO DELETE
 
     Shader tempShader("resources/shader/tempBoxvs.txt", "resources/shader/tempBoxfs.txt");
 
@@ -140,7 +139,7 @@ int main() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3*sizeof(float)));
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(VAO);
+    glBindVertexArray(0);
 
     unsigned int texture1;
 
@@ -175,6 +174,8 @@ int main() {
     tempShader.use();
     glUniform1i(glGetUniformLocation(tempShader.ID, "tex1"), 11);
     
+
+    setScene1();
     //------------------------------------------------------------------------------------------------------------temp setting=================================
 
 	while (!glfwWindowShouldClose(window)) {
@@ -226,6 +227,8 @@ int main() {
 
 	}
 
+    MSSystem.terminate();
+
 	glfwTerminate();
 	return 0;
 }
@@ -268,3 +271,14 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     cam.processMouseScroll(yoffset);
 }
 
+void setScene1() {
+    Ball* ball1 = new Ball(glm::vec3(3.0f, 0.0f, 0.0f));
+    MSSystem.addComponent(ball1);
+    Ball* ball2 = new Ball(glm::vec3(5.0f, 0.0f, 0.0f));
+    MSSystem.addComponent(ball2);
+
+    //add components
+
+
+    // drawSetup
+}

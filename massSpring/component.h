@@ -8,17 +8,20 @@ class Component
 {
 public:
 	Component();
-	~Component();
+	virtual ~Component();
 
-	Shader* shaderID;
-
-	virtual void drawSetup()=0;
+	Shader* shader;
 	virtual void update() = 0;
 	virtual void render() = 0;
 
 protected:
+
+	virtual void __drawSetup() = 0;
+
 	unsigned short type;
-	unsigned int VAO;
+
+	unsigned int VAO,EBO;
+
 private:
 
 };
@@ -32,14 +35,16 @@ public:
 	//Shader* shaderID;
 
 	FixedPoint();
-	~FixedPoint();
-	virtual void drawSetup();
+	virtual ~FixedPoint();
 	virtual void update();
 	virtual void render();
 
 private:
 
-	// unsigned int VAO;
+	// unsigned int VAO,EBO;
+	//unsigned short type;
+
+	virtual void __drawSetup();
 };
 
 
@@ -52,14 +57,13 @@ public:
 	//Shader* shaderID;
 
 	Spring();
-	~Spring();
-	virtual void drawSetup();
+	virtual ~Spring();
 	virtual void update();
 	virtual void render();
 
 private:
 	// unsigned short type;
-	//unsigned int VAO;
+	//unsigned int VAO,EBO;
 	float elasticity;
 	float defaultLen;
 	float currentLen;
@@ -68,6 +72,8 @@ private:
 	
 	Component* connectedObj1;
 	Component* connectedObj2;
+
+	virtual void __drawSetup();
 };
 
 class Ball : public Component	// only ball collide. DCD
@@ -77,15 +83,17 @@ public:
 	//Shader* shaderID;
 
 	Ball();
-	~Ball();
+	Ball(glm::vec3 position,float r = 1.0f, float d = 1.0f);
+	virtual ~Ball();
 
-	virtual void drawSetup();
 	virtual void update();
 	virtual void render();
 private:
 	// unsigned short type;
-	//unsigned int VAO;
+	//unsigned int VAO,EBO;
 	glm::vec3 pos;
 	float radius;
 	float density;
+
+	virtual void __drawSetup();
 };

@@ -8,10 +8,16 @@
 #include"component.h"
 #include"msSystem.h"
 #include"shader.h"
+#include"camera.h"
 
 #include<pmp/SurfaceMesh.h>
 #include<pmp/algorithms/Subdivision.h>
 
+
+extern Camera cam;
+
+extern const int SCR_WIDTH;
+extern const int SCR_HEIGHT;
 
 void __project_to_unit_sphere(pmp::SurfaceMesh& mesh);
 pmp::SurfaceMesh __icosahedron();
@@ -23,11 +29,14 @@ Component::Component()
 
 Component::~Component()
 {
+    std::cout << "COMPO~" << std::endl;
 }
+
 
 
 FixedPoint::FixedPoint()
 {
+    __drawSetup();
 }
 
 FixedPoint::~FixedPoint()
@@ -37,6 +46,7 @@ FixedPoint::~FixedPoint()
 
 Spring::Spring()
 {
+    __drawSetup();
 }
 
 Spring::~Spring()
@@ -46,10 +56,21 @@ Spring::~Spring()
 
 Ball::Ball()
 {
+    __drawSetup();
+}
+Ball::Ball(glm::vec3 position, float r, float d)
+{
+    pos = position;
+    radius = r;
+    density = d;
+    std::cout << r << d << std::endl;
+    __drawSetup();
 }
 
 Ball::~Ball()
 {
+    delete shader;
+    std::cout << "Ball~" << std::endl;
 }
 
 
@@ -60,10 +81,8 @@ void FixedPoint::render() {
 void FixedPoint::update() {
 
 }
-void FixedPoint::drawSetup() {
-	shaderID = new Shader("resources/shader/box_vs.txt", "resources/shader/box_fs.txt");
-
-
+void FixedPoint::__drawSetup() {
+	shader = new Shader("resources/shader/box_vs.txt", "resources/shader/box_fs.txt");
 }
 
 
@@ -74,17 +93,22 @@ void Spring::render() {
 void Spring::update() {
 
 }
-void Spring::drawSetup() {
+void Spring::__drawSetup() {
 
 }
 
-void Ball::drawSetup() {
+void Ball::__drawSetup() {
+
+    std::cout << "성공했다!!! 드로우셋업!!" << std::endl;
+
+    shader = new Shader("resources/shader/sphere_vs.txt", "resources/shader/sphere_fs.txt");
 
     pmp::SurfaceMesh sphere = __icosphere(1);
 
     std::vector<float> vertices = std::vector<float>();
-    std::vector<int> indices = std::vector<int>();
+    std::vector<unsigned int> indices = std::vector<unsigned int>();
 
+    /*
     for (auto f : sphere.faces()) {
         std::cout << f.idx() << "th face idx list : ";
         for (auto v : sphere.vertices(f)) {
@@ -110,9 +134,61 @@ void Ball::drawSetup() {
         }
         std::cout << std::endl;
     }
+    */
+    for (auto f : sphere.faces()) {
+        for (auto v : sphere.vertices(f)) {
+            auto p = sphere.position(v);
+        }
+    }
+
+    for (auto f : sphere.faces()) {
+        for (auto v : sphere.vertices(f)) {
+            auto p = sphere.position(v);
+            vertices.push_back(p[0]);
+            vertices.push_back(p[1]);
+            vertices.push_back(p[2]);
+            indices.push_back(v.idx());
+        }
+    }
+
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+    glGenVertexArrays(1,&VAO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
 }
 
 void Ball::render() {
+
+    std::cout << "공 렌더!!!" << std::endl;
+    shader->use();
+    glBindVertexArray(VAO);
+
+    glm::mat4 worldMat = glm::mat4(1.0f);
+    worldMat = glm::translate(worldMat, pos);
+
+    glm::mat4 viewMat = cam.getViewMatrix();
+    glm::mat4 projMat = glm::perspective(glm::radians(cam.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "worldMat"), 1, GL_FALSE,&worldMat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "viewMat"), 1, GL_FALSE, &viewMat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projMat"), 1, GL_FALSE, &projMat[0][0]);
+    glDrawElements(GL_TRIANGLES,240, GL_FLOAT, 0);
+    glBindVertexArray(0);
 
 }
 
@@ -193,39 +269,4 @@ pmp::SurfaceMesh __icosphere(size_t n_subdivisions)
         __project_to_unit_sphere(mesh);
     }
     return mesh;
-}
-
-void __temp_PMPTestMain() {
-
-    pmp::SurfaceMesh sphere = __icosphere(1);
-
-    std::vector<float> vertices = std::vector<float>();
-    std::vector<int> indices = std::vector<int>();
-
-    for (auto f : sphere.faces()) {
-        std::cout << f.idx() << "th face idx list : ";
-        for (auto v : sphere.vertices(f)) {
-            auto p = sphere.position(v);
-            std::cout << v.idx() << " , ";
-        }
-        std::cout << std::endl;
-    }
-
-    for (auto f : sphere.faces()) {
-        std::cout << f.idx() << "th face idx list : ";
-        for (auto v : sphere.vertices(f)) {
-            auto p = sphere.position(v);
-            vertices.push_back(p[0]);
-            vertices.push_back(p[1]);
-            vertices.push_back(p[2]);
-            indices.push_back(v.idx());
-            std::cout << v.idx() << " , ";
-            std::cout << " , position :    ";
-            std::cout << p[0] << " , ";
-            std::cout << p[1] << " , ";
-            std::cout << p[2] << " , ";
-        }
-        std::cout << std::endl;
-    }
-
 }

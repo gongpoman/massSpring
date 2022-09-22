@@ -13,6 +13,10 @@ msSystem::~msSystem() {
 
 }
 
+void msSystem::addComponent(Component* thing) {
+	components.push_back(thing);
+}
+
 void msSystem::updateAll() {
 	std::cout << "update start!!=========================================" << std::endl;
 
@@ -37,3 +41,12 @@ void msSystem::renderAll() {
 	std::cout << "render end!! =============================================== " << std::endl;
 }
 
+
+void msSystem::terminate(){ 
+	Component* delC;
+
+	for (auto iter = components.begin(); iter != components.end(); iter++) {
+		delC = *(iter);
+		delete delC;
+	}
+}

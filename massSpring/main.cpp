@@ -12,6 +12,7 @@
 #include"msSystem.h"
 #include"component.h"
 
+
 extern const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;    //REF :  const global variable은 extern을 붙여줘야 된다. https://community.arm.com/support-forums/f/compilers-and-libraries-forum/47925/c-extern-const-link-error
 
 float deltaTime= 1/60.0f;
@@ -52,20 +53,22 @@ int main() {
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 	glEnable(GL_DEPTH_TEST);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-   
+
     setScene1();
 
 	while (!glfwWindowShouldClose(window)) {
         std::cout << "loop start!!!!////////////////////////////////////////////////////////////////////////////////////////////////" << std::endl;
 		processInput(window);
 
-//        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
         MSSystem.updateAll();
         MSSystem.renderAll();
@@ -123,12 +126,18 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 void setScene1() {
 
     //add components
-    Ball* ball1 = new Ball(glm::vec3(0.0f, 0.0f, 0.0f),1.0f);
+    Ball* ball1 = new Ball(glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
     MSSystem.addComponent(ball1);
-    Ball* ball2 = new Ball(glm::vec3(2.0f, 3.0f, -1.0f),2.0f);
+    Ball* ball2 = new Ball(glm::vec3(2.0f, 3.0f, -1.0f), 2.0f);
     MSSystem.addComponent(ball2);
     Ball* ball3 = new Ball(glm::vec3(4.0f, 0.0f, 0.0f));
     MSSystem.addComponent(ball3);
 
+    FixedPoint* fp1 = new FixedPoint(glm::vec3(-1.0f, 0.0f, 0.0f));
+    MSSystem.addComponent(fp1);
 
+    SpringL* spr1 = new SpringL(glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(-4.0f, 0.0f, 0.0f));
+    MSSystem.addComponent(spr1);
+
+    // drawSetup
 }

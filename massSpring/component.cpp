@@ -38,19 +38,38 @@ FixedPoint::FixedPoint()
 {
     __drawSetup();
 }
+FixedPoint::FixedPoint(glm::vec3 position)
+{
+    pos = position;
+    __drawSetup();
+}
 
 FixedPoint::~FixedPoint()
 {
+    delete shader;
+    std::cout << "FP~" << std::endl;
 }
 
 
-Spring::Spring()
+SpringL::SpringL()
 {
     __drawSetup();
 }
 
-Spring::~Spring()
+SpringL::SpringL(glm::vec3 position1, glm::vec3 position2, float ela )
 {
+    pos1 = position1;
+    pos2 = position2;
+    elasticity = ela;
+    defaultLen = glm::length(pos1 - pos2);
+    currentLen = defaultLen;
+    __drawSetup();
+}
+
+SpringL::~SpringL()
+{
+    delete shader;
+    std::cout << "SPR~" << std::endl;
 }
 
 
@@ -63,6 +82,7 @@ Ball::Ball(glm::vec3 position, float r, float d)
     pos = position;
     radius = r;
     density = d;
+    mass = 4 / 3 * M_PI * r * r * r;
     __drawSetup();
 }
 
@@ -73,28 +93,142 @@ Ball::~Ball()
 }
 
 
-void FixedPoint::render() {
+void FixedPoint::__drawSetup() {
+    shader = new Shader("resources/shader/box_vs.txt", "resources/shader/box_fs.txt");
 
+    float vertices[] = {
+   -0.05f, -0.05f, -0.05f,
+    0.05f, -0.05f, -0.05f,
+    0.05f,  0.05f, -0.05f,
+    0.05f,  0.05f, -0.05f,
+   -0.05f,  0.05f, -0.05f,
+   -0.05f, -0.05f, -0.05f,
+
+   -0.05f, -0.05f,  0.05f,
+    0.05f, -0.05f,  0.05f,
+    0.05f,  0.05f,  0.05f,
+    0.05f,  0.05f,  0.05f,
+   -0.05f,  0.05f,  0.05f,
+   -0.05f, -0.05f,  0.05f,
+
+   -0.05f,  0.05f,  0.05f,
+   -0.05f,  0.05f, -0.05f,
+   -0.05f, -0.05f, -0.05f,
+   -0.05f, -0.05f, -0.05f,
+   -0.05f, -0.05f,  0.05f,
+   -0.05f,  0.05f,  0.05f,
+
+    0.05f,  0.05f,  0.05f,
+    0.05f,  0.05f, -0.05f,
+    0.05f, -0.05f, -0.05f,
+    0.05f, -0.05f, -0.05f,
+    0.05f, -0.05f,  0.05f,
+    0.05f,  0.05f,  0.05f,
+
+   -0.05f, -0.05f, -0.05f,
+    0.05f, -0.05f, -0.05f,
+    0.05f, -0.05f,  0.05f,
+    0.05f, -0.05f,  0.05f,
+   -0.05f, -0.05f,  0.05f,
+   -0.05f, -0.05f, -0.05f,
+
+   -0.05f,  0.05f, -0.05f,
+    0.05f,  0.05f, -0.05f,
+    0.05f,  0.05f,  0.05f,
+    0.05f,  0.05f,  0.05f,
+   -0.05f,  0.05f,  0.05f,
+   -0.05f,  0.05f, -0.05f,
+    };
+    unsigned int VBO;
+
+    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &VAO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void FixedPoint::render() {
+    shader->use();
+    glBindVertexArray(VAO);
+
+    glm::mat4 worldMat = glm::mat4(1.0f);
+    worldMat = glm::translate(worldMat, pos);
+
+    glm::mat4 viewMat = cam.getViewMatrix();
+    glm::mat4 projMat = glm::perspective(glm::radians(cam.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "worldMat"), 1, GL_FALSE, &worldMat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "viewMat"), 1, GL_FALSE, &viewMat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projMat"), 1, GL_FALSE, &projMat[0][0]);
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
 }
 
 void FixedPoint::update() {
 
 }
-void FixedPoint::__drawSetup() {
-	shader = new Shader("resources/shader/box_vs.txt", "resources/shader/box_fs.txt");
+
+
+void SpringL::__drawSetup() {
+
+    shader = new Shader("resources/shader/springL_vs.txt", "resources/shader/springL_fs.txt");
+
+    float vertices[] = {
+        pos1[0],pos1[1],pos1[2],
+        pos2[0],pos2[1],pos2[2],
+    };
+
+    unsigned int VBO;
+
+    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1,&VAO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); 
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+}
+
+void SpringL::render() {
+    shader->use();
+    glBindVertexArray(VAO);
+
+    glm::mat4 worldMat = glm::mat4(1.0f);
+
+    glm::mat4 viewMat = cam.getViewMatrix();
+    glm::mat4 projMat = glm::perspective(glm::radians(cam.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "worldMat"), 1, GL_FALSE, &worldMat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "viewMat"), 1, GL_FALSE, &viewMat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projMat"), 1, GL_FALSE, &projMat[0][0]);
+
+    glDrawArrays(GL_LINES, 0, 2);
+    glBindVertexArray(0);
+}
+
+void SpringL::update() {
+
 }
 
 
-void Spring::render() {
 
-}
-
-void Spring::update() {
-
-}
-void Spring::__drawSetup() {
-
-}
 
 void Ball::__drawSetup() {
 
@@ -148,7 +282,7 @@ void Ball::render() {
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "viewMat"), 1, GL_FALSE, &viewMat[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projMat"), 1, GL_FALSE, &projMat[0][0]);
 
-    glDrawArrays(GL_TRIANGLES, 0, 960);
+    glDrawArrays(GL_TRIANGLES, 0, 960); //REF : drawcall은 굉장히 비싼 함수다. 그래서 최대한 적게 사용해야 됨. 특히 프로젝트 규모가 커질수록 그렇다고 함.
 
     glBindVertexArray(0);
 }
@@ -158,7 +292,7 @@ void Ball::update() {
 }
 
 
-
+// REF : https://www.danielsieger.com/blog/2021/03/27/generating-spheres.html
 void __project_to_unit_sphere(pmp::SurfaceMesh& mesh)
 {
     using namespace pmp;

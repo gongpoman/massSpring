@@ -4,6 +4,10 @@
 
 #include"shader.h"
 
+/* 
+using SI unit
+length : m, mass : kg, ...
+*/
 class Component
 {
 public:
@@ -20,7 +24,7 @@ protected:
 
 	unsigned short type;
 
-	unsigned int VAO,EBO;
+	unsigned int VAO;
 
 private:
 
@@ -35,20 +39,21 @@ public:
 	//Shader* shaderID;
 
 	FixedPoint();
+	FixedPoint(glm::vec3 position);
 	virtual ~FixedPoint();
 	virtual void update();
 	virtual void render();
 
 private:
 
-	// unsigned int VAO,EBO;
+	// unsigned int VAO;
 	//unsigned short type;
 
 	virtual void __drawSetup();
 };
 
 
-class Spring : public Component
+class SpringL : public Component
 {
 	// no mass no collision
 	// generating force depends on dL
@@ -56,23 +61,26 @@ public:
 
 	//Shader* shaderID;
 
-	Spring();
-	virtual ~Spring();
+	SpringL();
+	SpringL(glm::vec3 position1, glm::vec3 position2, float ela=1.0f);
+	virtual ~SpringL();
 	virtual void update();
 	virtual void render();
 
 private:
 	// unsigned short type;
-	//unsigned int VAO,EBO;
+	//unsigned int VAO;
 	float elasticity;
 	float defaultLen;
 	float currentLen;
 	glm::vec3 pos1;
 	glm::vec3 pos2;
-	
+	/*
 	Component* connectedObj1;
 	Component* connectedObj2;
 
+	TODO : think how to do handle interaction btw spring and ball.// I 'm thinking to make obj "joint" which is interface bte them...
+	*/
 	virtual void __drawSetup();
 };
 
@@ -90,10 +98,11 @@ public:
 	virtual void render();
 private:
 	// unsigned short type;
-	//unsigned int VAO,EBO;
+	//unsigned int VAO;
 	glm::vec3 pos;
 	float radius;
 	float density;
+	float mass;
 
 	virtual void __drawSetup();
 };

@@ -14,7 +14,7 @@ struct { // TODO later...
 
 class msSystem
 {
-public: // TODO ¸ô¶ú´ø °Å. most vexing https://stackoverflow.com/questions/20871225/error-c2228-left-of-must-have-class-struct-union
+public: // REF :  most vexing https://stackoverflow.com/questions/20871225/error-c2228-left-of-must-have-class-struct-union
 
 	std::vector<Component*> components;
 

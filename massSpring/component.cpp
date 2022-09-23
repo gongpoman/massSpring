@@ -63,7 +63,6 @@ Ball::Ball(glm::vec3 position, float r, float d)
     pos = position;
     radius = r;
     density = d;
-    std::cout << r << d << std::endl;
     __drawSetup();
 }
 
@@ -99,84 +98,45 @@ void Spring::__drawSetup() {
 
 void Ball::__drawSetup() {
 
-    std::cout << "성공했다!!! 드로우셋업!!" << std::endl;
-
     shader = new Shader("resources/shader/sphere_vs.txt", "resources/shader/sphere_fs.txt");
-
-    pmp::SurfaceMesh sphere = __icosphere(1);
-
+    pmp::SurfaceMesh sphere = __icosphere(2);
     std::vector<float> vertices = std::vector<float>();
-    std::vector<unsigned int> indices = std::vector<unsigned int>();
 
-    /*
-    for (auto f : sphere.faces()) {
-        std::cout << f.idx() << "th face idx list : ";
-        for (auto v : sphere.vertices(f)) {
-            auto p = sphere.position(v);
-            std::cout << v.idx() << " , ";
-        }
-        std::cout << std::endl;
-    }
-
-    for (auto f : sphere.faces()) {
-        std::cout << f.idx() << "th face idx list : ";
-        for (auto v : sphere.vertices(f)) {
-            auto p = sphere.position(v);
-            vertices.push_back(p[0]);
-            vertices.push_back(p[1]);
-            vertices.push_back(p[2]);
-            indices.push_back(v.idx());
-            std::cout << v.idx() << " , ";
-            std::cout << " , position :    ";
-            std::cout << p[0] << " , ";
-            std::cout << p[1] << " , ";
-            std::cout << p[2] << " , ";
-        }
-        std::cout << std::endl;
-    }
-    */
-    for (auto f : sphere.faces()) {
-        for (auto v : sphere.vertices(f)) {
-            auto p = sphere.position(v);
-        }
-    }
+    std::cout << radius << std::endl;
 
     for (auto f : sphere.faces()) {
         for (auto v : sphere.vertices(f)) {
             auto p = sphere.position(v);
-            vertices.push_back(p[0]);
-            vertices.push_back(p[1]);
-            vertices.push_back(p[2]);
-            indices.push_back(v.idx());
+            vertices.push_back(p[0]*radius);
+            vertices.push_back(p[1] * radius);
+            vertices.push_back(p[2] * radius);
         }
     }
 
+    //REF : binding order of EBO,VAO https://stackoverflow.com/questions/69382389/opengl-binding-order-between-ebo-and-vao
+    // 근데 애초에 EBO를 쓰려고 했기 때문에 버그가 발생했던거임.. 아무튼 고쳤다.
     unsigned int VBO;
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-    glGenVertexArrays(1,&VAO);
+    glGenVertexArrays(1, &VAO);
 
-    glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindVertexArray(VAO);
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * indices.size(), &indices[0], GL_STATIC_DRAW);
-
+ 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+ 
 }
-
 void Ball::render() {
-
-    std::cout << "공 렌더!!!" << std::endl;
+    
     shader->use();
     glBindVertexArray(VAO);
+
+    //TODO scaling with r
 
     glm::mat4 worldMat = glm::mat4(1.0f);
     worldMat = glm::translate(worldMat, pos);
@@ -187,18 +147,15 @@ void Ball::render() {
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "worldMat"), 1, GL_FALSE,&worldMat[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "viewMat"), 1, GL_FALSE, &viewMat[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projMat"), 1, GL_FALSE, &projMat[0][0]);
-    glDrawElements(GL_TRIANGLES,240, GL_FLOAT, 0);
-    glBindVertexArray(0);
 
+    glDrawArrays(GL_TRIANGLES, 0, 960);
+
+    glBindVertexArray(0);
 }
 
 void Ball::update() {
 
 }
-
-
-
-
 
 
 

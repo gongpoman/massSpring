@@ -21,7 +21,9 @@ void msSystem::updateAll() {
 	std::cout << "update start!!=========================================" << std::endl;
 
 	// TODO update components loop
-
+	for (auto iter = components.begin(); iter != components.end(); iter++) {
+		(*iter)->update();
+	}
 	// TODO collision detection
 
 	// TODO collision resolution
@@ -36,8 +38,6 @@ void msSystem::renderAll() {
 		(*iter)->render();
 		
 	}
-
-
 	std::cout << "render end!! =============================================== " << std::endl;
 }
 

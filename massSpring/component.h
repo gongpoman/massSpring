@@ -19,13 +19,12 @@ public:
 	virtual void render() = 0;
 
 protected:
+	unsigned short type;
+	unsigned int VAO;
 
 	virtual void __drawSetup() = 0;
 
-	unsigned short type;
-
-	unsigned int VAO;
-
+	
 private:
 
 };
@@ -62,7 +61,7 @@ public:
 	//Shader* shaderID;
 
 	SpringL();
-	SpringL(glm::vec3 position1, glm::vec3 position2, float ela=1.0f);
+	SpringL(glm::vec3 position1, glm::vec3 position2, float ela = 1.0f);
 	virtual ~SpringL();
 	virtual void update();
 	virtual void render();
@@ -99,7 +98,11 @@ public:
 private:
 	// unsigned short type;
 	//unsigned int VAO;
+
 	glm::vec3 pos;
+	glm::vec3 vel;
+	glm::vec3 acc;
+
 	float radius;
 	float density;
 	float mass;

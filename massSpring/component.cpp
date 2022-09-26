@@ -19,6 +19,8 @@ extern Camera cam;
 extern const int SCR_WIDTH;
 extern const int SCR_HEIGHT;
 
+extern float deltaTime;
+
 void __project_to_unit_sphere(pmp::SurfaceMesh& mesh);
 pmp::SurfaceMesh __icosahedron();
 pmp::SurfaceMesh __icosphere(size_t n_subdivisions);
@@ -80,6 +82,8 @@ Ball::Ball()
 Ball::Ball(glm::vec3 position, float r, float d)
 {
     pos = position;
+    vel = glm::vec3(0);
+    acc = glm::vec3(0);
     radius = r;
     density = d;
     mass = 4 / 3 * M_PI * r * r * r;
@@ -270,8 +274,6 @@ void Ball::render() {
     shader->use();
     glBindVertexArray(VAO);
 
-    //TODO scaling with r
-
     glm::mat4 worldMat = glm::mat4(1.0f);
     worldMat = glm::translate(worldMat, pos);
 
@@ -288,7 +290,23 @@ void Ball::render() {
 }
 
 void Ball::update() {
+    const glm::vec3 gravity  = mass*glm::vec3(0, -9.8f,0);
+    const glm::vec3 grav_Pos = pos;
 
+    glm::vec3 netForce = glm::vec3(0);
+
+    //TODO gather all force... 
+
+    netForce += gravity;
+
+    //TODO gather all torque...
+
+    acc = netForce / mass;
+
+    pos += deltaTime * vel + 0.5f * deltaTime * deltaTime * acc;
+    vel += deltaTime * acc;
+
+    std::cout << pos.x << " : " << pos.y << " : " << pos.z << std::endl;
 }
 
 

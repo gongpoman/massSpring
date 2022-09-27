@@ -1,13 +1,23 @@
 #pragma once
+#include<vector>
 
 #include<glm/glm.hpp>
 
 #include"shader.h"
 
+#include"joint.h" //TODONOW
+
 /* 
 using SI unit
 length : m, mass : kg, ...
 */
+
+enum CompType {
+	SPRINGL,
+	MASS,
+	FP
+};
+
 class Component
 {
 public:
@@ -18,13 +28,13 @@ public:
 	virtual void update() = 0;
 	virtual void render() = 0;
 
+	CompType getType();
+
 protected:
-	unsigned short type;
+	CompType type;
 	unsigned int VAO;
 
 	virtual void __drawSetup() = 0;
-
-	
 private:
 
 };
@@ -46,7 +56,7 @@ public:
 private:
 
 	// unsigned int VAO;
-	//unsigned short type;
+	//CompType type;
 
 	virtual void __drawSetup();
 };
@@ -56,6 +66,7 @@ class SpringL : public Component
 {
 	// no mass no collision
 	// generating force depends on dL
+	// each end point depends on vertex of linked object.
 public:
 
 	//Shader* shaderID;
@@ -67,7 +78,7 @@ public:
 	virtual void render();
 
 private:
-	// unsigned short type;
+	//CompType type;
 	//unsigned int VAO;
 	float elasticity;
 	float defaultLen;
@@ -83,7 +94,32 @@ private:
 	virtual void __drawSetup();
 };
 
-class Ball : public Component	// only ball collide. DCD
+class Mass : public Component {
+public : 
+	Mass();
+	virtual ~Mass();
+	virtual void update() = 0;
+	virtual void render() = 0;
+
+	virtual void ftProcess()=0;
+	// TODO maybe temp function... it return torque, force 
+
+protected:
+	glm::vec3 pos;
+	glm::vec3 vel;
+	glm::vec3 acc;
+
+	glm::vec3 netF; // netForce.
+	glm::vec3 netT; // netTorque.
+
+private : 
+
+	virtual void __drawSetup() = 0;
+
+};
+
+
+class Ball : public Mass // only ball collide. DCD
 {
 public:
 
@@ -95,17 +131,29 @@ public:
 
 	virtual void update();
 	virtual void render();
-private:
-	// unsigned short type;
-	//unsigned int VAO;
 
+protected : 
+
+	/*
+	* first we calculate these values in ftProcess function and in update func pos, vel, acc updated.
+	glm::vec3 netF; // netForce.
+	glm::vec3 netT; // netTorque.
+	
 	glm::vec3 pos;
 	glm::vec3 vel;
 	glm::vec3 acc;
 
+	*/
+
+	//CompType type;
+	//unsigned int VAO;
+private:
+	
+//TODONOW	std::vector<Joint*> joints;
+
 	float radius;
 	float density;
 	float mass;
-
+	virtual void ftProcess();
 	virtual void __drawSetup();
 };

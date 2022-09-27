@@ -11,6 +11,7 @@
 #include"camera.h"
 #include"msSystem.h"
 #include"component.h"
+#include"joint.h"
 
 
 extern const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;    //REF :  const global variable은 extern을 붙여줘야 된다. https://community.arm.com/support-forums/f/compilers-and-libraries-forum/47925/c-extern-const-link-error

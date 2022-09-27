@@ -9,6 +9,7 @@
 #include"msSystem.h"
 #include"shader.h"
 #include"camera.h"
+#include"joint.h"
 
 #include<pmp/SurfaceMesh.h>
 #include<pmp/algorithms/Subdivision.h>
@@ -27,6 +28,8 @@ pmp::SurfaceMesh __icosphere(size_t n_subdivisions);
 
 Component::Component()
 {
+    std::cout << "Comp!!!" << std::endl;
+
 }
 
 Component::~Component()
@@ -42,6 +45,7 @@ FixedPoint::FixedPoint()
 }
 FixedPoint::FixedPoint(glm::vec3 position)
 {
+    type = FP;
     pos = position;
     __drawSetup();
 }
@@ -60,6 +64,7 @@ SpringL::SpringL()
 
 SpringL::SpringL(glm::vec3 position1, glm::vec3 position2, float ela )
 {
+    type = SPRINGL;
     pos1 = position1;
     pos2 = position2;
     elasticity = ela;
@@ -74,6 +79,13 @@ SpringL::~SpringL()
     std::cout << "SPR~" << std::endl;
 }
 
+Mass::Mass() {
+    std::cout << "MASS!!" << std::endl;
+    type = MASS;
+}
+Mass::~Mass() {
+    std::cout << "Mass~" << std::endl;
+}
 
 Ball::Ball()
 {
@@ -81,9 +93,14 @@ Ball::Ball()
 }
 Ball::Ball(glm::vec3 position, float r, float d)
 {
+    std::cout << "Ball Init...!!!" << std::endl;
     pos = position;
     vel = glm::vec3(0);
     acc = glm::vec3(0);
+
+    netF = glm::vec3(0);
+    netT = glm::vec3(0);
+
     radius = r;
     density = d;
     mass = 4 / 3 * M_PI * r * r * r;
@@ -94,6 +111,10 @@ Ball::~Ball()
 {
     delete shader;
     std::cout << "Ball~" << std::endl;
+}
+
+CompType Component::getType() {
+    return type;
 }
 
 
@@ -233,14 +254,11 @@ void SpringL::update() {
 
 
 
-
 void Ball::__drawSetup() {
 
     shader = new Shader("resources/shader/sphere_vs.txt", "resources/shader/sphere_fs.txt");
     pmp::SurfaceMesh sphere = __icosphere(2);
     std::vector<float> vertices = std::vector<float>();
-
-    std::cout << radius << std::endl;
 
     for (auto f : sphere.faces()) {
         for (auto v : sphere.vertices(f)) {
@@ -289,19 +307,29 @@ void Ball::render() {
     glBindVertexArray(0);
 }
 
-void Ball::update() {
-    const glm::vec3 gravity  = mass*glm::vec3(0, -9.8f,0);
+// 공의 위치에 따라서. spring의 끝 점의 위치가 dependent한 방식으로 짜게 되면.
+// update 할 때 힘을 분리 시키지 않으면 어떤 ball 이 먼저 update 되었는 지에 따라서.
+
+void Ball::ftProcess() {
+
+    //TODO Force process.
+    const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
     const glm::vec3 grav_Pos = pos;
 
     glm::vec3 netForce = glm::vec3(0);
 
-    //TODO gather all force... 
-
     netForce += gravity;
 
-    //TODO gather all torque...
+    netF = netForce;
 
-    acc = netForce / mass;
+    //TODO  Torque process.
+
+
+}
+
+void Ball::update() {
+    
+    acc = netF / mass;
 
     pos += deltaTime * vel + 0.5f * deltaTime * deltaTime * acc;
     vel += deltaTime * acc;

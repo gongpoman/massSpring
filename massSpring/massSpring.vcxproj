@@ -134,6 +134,7 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="joint.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="msSystem.cpp" />
     <ClCompile Include="component.cpp" />
@@ -141,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="joint.h" />
     <ClInclude Include="msSystem.h" />
     <ClInclude Include="component.h" />
     <ClInclude Include="shader.h" />

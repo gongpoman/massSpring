@@ -15,15 +15,25 @@ msSystem::~msSystem() {
 
 void msSystem::addComponent(Component* thing) {
 	components.push_back(thing);
+	std::cout << "type number " << thing->getType()<< " added in compList" << std::endl;
 }
 
 void msSystem::updateAll() {
 	std::cout << "update start!!=========================================" << std::endl;
 
-	// TODO update components loop
+	// in update i want collectively update pos, vel, acc after F is defined.
+	// because elastic force is depends on position
+	// so before update, F must be defined.
+	for (auto iter = components.begin(); iter != components.end(); iter++) {
+		CompType t = (*iter)->getType();
+		if (t == MASS)
+			static_cast<Mass*>(*iter)->ftProcess();
+	}
+
 	for (auto iter = components.begin(); iter != components.end(); iter++) {
 		(*iter)->update();
 	}
+
 	// TODO collision detection
 
 	// TODO collision resolution

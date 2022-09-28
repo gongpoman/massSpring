@@ -26,8 +26,6 @@ public: // REF :  most vexing https://stackoverflow.com/questions/20871225/error
 	void updateAll();
 	void renderAll();
 
-	void terminate();
-
 private:
 
 };

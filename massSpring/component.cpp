@@ -22,22 +22,22 @@ extern const int SCR_HEIGHT;
 
 extern float deltaTime;
 
+void __mapBuffer(unsigned int& vbo, void* data, unsigned int size);
 void __project_to_unit_sphere(pmp::SurfaceMesh& mesh);
 pmp::SurfaceMesh __icosahedron();
 pmp::SurfaceMesh __icosphere(size_t n_subdivisions);
+
 
 Component::Component()
 {
     std::cout << "Comp!!!" << std::endl;
 
 }
-
 Component::~Component()
 {
-    std::cout << "COMPO~" << std::endl;
+    delete shader;
+    std::cout<<shader << "    In COMPO~" << std::endl;
 }
-
-
 
 FixedPoint::FixedPoint()
 {
@@ -49,34 +49,14 @@ FixedPoint::FixedPoint(glm::vec3 position)
     pos = position;
     __drawSetup();
 }
-
 FixedPoint::~FixedPoint()
 {
-    delete shader;
+    for (auto iter = joints.begin(); iter != joints.end(); iter++) {
+        auto delJ = (*iter);
+        delete delJ;
+        std::cout << "deleteJoint in FP" << std::endl;
+    }
     std::cout << "FP~" << std::endl;
-}
-
-
-SpringL::SpringL()
-{
-    __drawSetup();
-}
-
-SpringL::SpringL(glm::vec3 position1, glm::vec3 position2, float ela )
-{
-    type = SPRINGL;
-    pos1 = position1;
-    pos2 = position2;
-    elasticity = ela;
-    defaultLen = glm::length(pos1 - pos2);
-    currentLen = defaultLen;
-    __drawSetup();
-}
-
-SpringL::~SpringL()
-{
-    delete shader;
-    std::cout << "SPR~" << std::endl;
 }
 
 Mass::Mass() {
@@ -84,13 +64,15 @@ Mass::Mass() {
     type = MASS;
 }
 Mass::~Mass() {
+
+    for (auto iter = joints.begin(); iter != joints.end(); iter++) {
+        Joint* delJ = (*iter);
+        delete delJ;
+        std::cout << "deleteJoint In mass" << std::endl;
+    }
+
     std::cout << "Mass~" << std::endl;
 }
-
-glm::vec3 Mass::getPosition() {
-    return pos;
-}
-
 
 Ball::Ball()
 {
@@ -111,10 +93,8 @@ Ball::Ball(glm::vec3 position, float r, float d)
     mass = 4 / 3 * M_PI * r * r * r;
     __drawSetup();
 }
-
 Ball::~Ball()
 {
-    delete shader;
     std::cout << "Ball~" << std::endl;
 }
 
@@ -212,55 +192,36 @@ glm::vec3 FixedPoint::getPosition() {
     return pos;
 }
 
-void SpringL::__drawSetup() {
-
-    shader = new Shader("resources/shader/springL_vs.txt", "resources/shader/springL_fs.txt");
-
-    float vertices[] = {
-        pos1[0],pos1[1],pos1[2],
-        pos2[0],pos2[1],pos2[2],
-    };
-
-    unsigned int VBO;
-
-    glGenBuffers(1, &VBO);
-    glGenVertexArrays(1,&VAO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO); 
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-}
-
-void SpringL::render() {
-    shader->use();
-    glBindVertexArray(VAO);
-
-    glm::mat4 worldMat = glm::mat4(1.0f);
-
-    glm::mat4 viewMat = cam.getViewMatrix();
-    glm::mat4 projMat = glm::perspective(glm::radians(cam.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "worldMat"), 1, GL_FALSE, &worldMat[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "viewMat"), 1, GL_FALSE, &viewMat[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projMat"), 1, GL_FALSE, &projMat[0][0]);
-
-    glDrawArrays(GL_LINES, 0, 2);
-    glBindVertexArray(0);
-}
-
-void SpringL::update() {
-
+void FixedPoint::addJoint(Joint* joint) {
+    joints.push_back(joint);
 }
 
 
+void Mass::ftProcess() {
+
+    //get all forces generated in joints
+
+    //TODO Force process.
+
+    const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
+    const glm::vec3 grav_Pos = pos;
+
+    glm::vec3 netForce = glm::vec3(0);
+
+    netForce += gravity;
+
+    netF = netForce;
+
+    //TODO  Torque process.
+
+
+}
+glm::vec3 Mass::getPosition() {
+    return pos;
+}
+void Mass::addJoint(Joint* joint) {
+    joints.push_back(joint);
+}
 
 void Ball::__drawSetup() {
 
@@ -318,26 +279,6 @@ void Ball::render() {
 // 공의 위치에 따라서. spring의 끝 점의 위치가 dependent한 방식으로 짜게 되면.
 // update 할 때 힘을 분리 시키지 않으면 어떤 ball 이 먼저 update 되었는 지에 따라서.
 
-void Mass::ftProcess() {
-
-    //get all forces generated in joints
-
-    //TODO Force process.
-
-    const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
-    const glm::vec3 grav_Pos = pos;
-
-    glm::vec3 netForce = glm::vec3(0);
-
-    netForce += gravity;
-
-    netF = netForce;
-
-    //TODO  Torque process.
-
-
-}
-
 void Ball::update() {
     
     acc = netF / mass;
@@ -346,6 +287,107 @@ void Ball::update() {
     vel += deltaTime * acc;
 
     std::cout << pos.x << " : " << pos.y << " : " << pos.z << std::endl;
+}
+
+
+
+SpringL::SpringL()
+{
+    __drawSetup();
+}
+
+SpringL::SpringL(glm::vec3 position1, glm::vec3 position2, float ela)
+{
+    type = SPRINGL;
+    pos1 = position1;
+    pos2 = position2;
+    elasticity = ela;
+    defaultLen = glm::length(pos1 - pos2);
+    currentLen = defaultLen;
+    __drawSetup();
+}
+
+SpringL::~SpringL()
+{
+    std::cout << "SPR~" << std::endl;
+}
+
+
+
+void SpringL::__drawSetup() {
+
+    shader = new Shader("resources/shader/springL_vs.txt", "resources/shader/springL_fs.txt");
+
+    float vertices[] = {
+        pos1[0],pos1[1],pos1[2],
+        pos2[0],pos2[1],pos2[2],
+    };
+
+    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &VAO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+}
+
+void SpringL::render() {
+    shader->use();
+    glBindVertexArray(VAO);
+
+    glm::mat4 worldMat = glm::mat4(1.0f);
+
+    glm::mat4 viewMat = cam.getViewMatrix();
+    glm::mat4 projMat = glm::perspective(glm::radians(cam.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "worldMat"), 1, GL_FALSE, &worldMat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "viewMat"), 1, GL_FALSE, &viewMat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projMat"), 1, GL_FALSE, &projMat[0][0]);
+
+    glDrawArrays(GL_LINES, 0, 2);
+    glBindVertexArray(0);
+}
+
+void SpringL::update() {
+    pos1 = endP[0]->getJointPos();
+    pos2 = endP[1]->getJointPos();
+
+    //VAO, VBO update for rendering.
+    float vertices[] = {
+      pos1[0],pos1[1],pos1[2],
+      pos2[0],pos2[1],pos2[2],
+    };
+    __mapBuffer(VBO,vertices,sizeof(vertices));
+}
+void SpringL::linkJoint(Joint* joint, bool id) {
+    endP[id] = joint;
+    if (!id)
+        pos1 = joint->getJointPos();
+    else
+        pos2 = joint->getJointPos();
+
+    currentLen = glm::length(pos1 - pos2);
+}
+
+
+void __mapBuffer(unsigned int &vbo,void* data, unsigned int size) {
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+    memcpy(ptr, data, size);
+
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+
+    glBindBuffer(GL_ARRAY_BUFFER,0);
 }
 
 

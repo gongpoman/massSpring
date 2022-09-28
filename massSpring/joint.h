@@ -4,9 +4,7 @@
 
 #include<glm/glm.hpp>
 
-#include"component.h"
 
-//BUG 이거 왜 써야 되나. 이게 compoenent.h에 정의되어 있는데...
 class Mass;
 class Component;
 class SpringL;
@@ -22,7 +20,7 @@ public:
 	Joint(Mass* mass, glm::vec3 jpos);
 	~Joint();
 
-	void addSpring(SpringL* pSpr,bool id);
+	void linkSpring(SpringL* pSpr,bool id);
 
 	//function return netforce which springs exert.
 	glm::vec3 getJointForce();

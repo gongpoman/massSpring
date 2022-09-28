@@ -10,7 +10,12 @@ msSystem::msSystem() {
 
 }
 msSystem::~msSystem() {
+	Component* delC;
 
+	for (auto iter = components.begin(); iter != components.end(); iter++) {
+		delC = *(iter);
+		delete delC;
+	}
 }
 
 void msSystem::addComponent(Component* thing) {
@@ -31,7 +36,12 @@ void msSystem::updateAll() {
 	}
 
 	for (auto iter = components.begin(); iter != components.end(); iter++) {
-		(*iter)->update();
+		if(( * iter)->getType() != SPRINGL)
+			(*iter)->update();
+	}
+	for (auto iter = components.begin(); iter != components.end(); iter++) {
+		if ((*iter)->getType() == SPRINGL)
+			(*iter)->update();
 	}
 
 	// TODO collision detection
@@ -51,12 +61,3 @@ void msSystem::renderAll() {
 	std::cout << "render end!! =============================================== " << std::endl;
 }
 
-
-void msSystem::terminate(){ 
-	Component* delC;
-
-	for (auto iter = components.begin(); iter != components.end(); iter++) {
-		delC = *(iter);
-		delete delC;
-	}
-}

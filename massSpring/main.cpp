@@ -79,8 +79,7 @@ int main() {
         std::cout << "loop end!!!!/////////////////////////////////////////////////////////////////////////////////" << std::endl << std::endl;
 
 	}
-
-    MSSystem.terminate();
+    
 
 	glfwTerminate();
 	return 0;
@@ -129,16 +128,21 @@ void setScene1() {
     //add components
     Ball* ball1 = new Ball(glm::vec3(0.0f, 0.0f, 0.0f), 1.0f);
     MSSystem.addComponent(ball1);
-    Ball* ball2 = new Ball(glm::vec3(2.0f, 3.0f, -1.0f), 2.0f);
-    MSSystem.addComponent(ball2);
-    Ball* ball3 = new Ball(glm::vec3(4.0f, 0.0f, 0.0f));
-    MSSystem.addComponent(ball3);
-
-    FixedPoint* fp1 = new FixedPoint(glm::vec3(-1.0f, 0.0f, 0.0f));
-    MSSystem.addComponent(fp1);
 
     SpringL* spr1 = new SpringL(glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(-4.0f, 0.0f, 0.0f));
     MSSystem.addComponent(spr1);
 
-    // drawSetup
+    FixedPoint* fp1 = new FixedPoint(glm::vec3(-1.0f, 0.0f, 0.0f));
+    MSSystem.addComponent(fp1);
+
+    // def linkage 
+
+    Joint* j1_On_Ball1 = new Joint(ball1, glm::vec3(1.0f, 0.0f, 0.0f));     // TODONOW  mass 연결할 떄 어떤 일이 일어나는지...
+    j1_On_Ball1->linkSpring(spr1, 0); // spring의 1번 end를 joint에 연결.     //TODONOW 이것도 비슷함.
+
+    Joint* j1_On_Fp1 = new Joint(fp1);                                      //TODONOW spring 연결할 때 어떤 것들이 일어나는지...
+    j1_On_Fp1->linkSpring(spr1, 1);
+
+    
+
 }

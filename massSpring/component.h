@@ -5,12 +5,13 @@
 
 #include"shader.h"
 
-#include"joint.h" 
 
 /* 
 using SI unit
 length : m, mass : kg, ...
 */
+
+class Joint;
 
 enum CompType {
 	SPRINGL,
@@ -55,7 +56,11 @@ public:
 
 	glm::vec3 getPosition();
 
+	void addJoint(Joint*);
+
 private:
+
+	std::vector<Joint*> joints;
 
 	// unsigned int VAO;
 	//CompType type;
@@ -75,7 +80,7 @@ public:
 	//Shader* shaderID;
 
 	SpringL();
-	SpringL(glm::vec3 position1, glm::vec3 position2, float ela = 1.0f);
+	SpringL(glm::vec3 position1 = glm::vec3(0), glm::vec3 position2 = glm::vec3(0), float ela = 1.0f);
 	virtual ~SpringL();
 	virtual void update();
 	virtual void render();
@@ -85,6 +90,8 @@ public:
 private:
 	//CompType type;
 	//unsigned int VAO;
+	unsigned int VBO;
+
 	float elasticity;
 	float defaultLen;
 	float currentLen;
@@ -92,6 +99,7 @@ private:
 	glm::vec3 pos2;
 
 	Joint* endP[2];
+
 
 	virtual void __drawSetup();
 };

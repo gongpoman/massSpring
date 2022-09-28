@@ -5,7 +5,7 @@
 
 #include"shader.h"
 
-#include"joint.h" //TODONOW
+#include"joint.h" 
 
 /* 
 using SI unit
@@ -53,6 +53,8 @@ public:
 	virtual void update();
 	virtual void render();
 
+	glm::vec3 getPosition();
+
 private:
 
 	// unsigned int VAO;
@@ -85,12 +87,9 @@ private:
 	float currentLen;
 	glm::vec3 pos1;
 	glm::vec3 pos2;
-	/*
-	Component* connectedObj1;
-	Component* connectedObj2;
 
-	TODO : think how to do handle interaction btw spring and ball.// I 'm thinking to make obj "joint" which is interface bte them...
-	*/
+	Joint* endP[2];
+
 	virtual void __drawSetup();
 };
 
@@ -102,12 +101,13 @@ public :
 	virtual void render() = 0;
 
 	virtual void ftProcess()=0;
-	// TODO maybe temp function... it return torque, force 
 
+	glm::vec3 getPosition();
 protected:
 	glm::vec3 pos;
 	glm::vec3 vel;
 	glm::vec3 acc;
+	void* orientation; // TODO how can i represent orientation. use quaternion?
 
 	glm::vec3 netF; // netForce.
 	glm::vec3 netT; // netTorque.
@@ -129,6 +129,7 @@ public:
 	Ball(glm::vec3 position,float r = 1.0f, float d = 1.0f);
 	virtual ~Ball();
 
+
 	virtual void update();
 	virtual void render();
 
@@ -149,7 +150,7 @@ protected :
 	//unsigned int VAO;
 private:
 	
-//TODONOW	std::vector<Joint*> joints;
+	std::vector<Joint*> joints;
 
 	float radius;
 	float density;

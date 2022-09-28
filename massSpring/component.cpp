@@ -87,6 +87,11 @@ Mass::~Mass() {
     std::cout << "Mass~" << std::endl;
 }
 
+glm::vec3 Mass::getPosition() {
+    return pos;
+}
+
+
 Ball::Ball()
 {
     __drawSetup();
@@ -203,6 +208,9 @@ void FixedPoint::update() {
 
 }
 
+glm::vec3 FixedPoint::getPosition() {
+    return pos;
+}
 
 void SpringL::__drawSetup() {
 
@@ -312,7 +320,10 @@ void Ball::render() {
 
 void Ball::ftProcess() {
 
+    //get all forces generated in joints
+
     //TODO Force process.
+
     const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
     const glm::vec3 grav_Pos = pos;
 

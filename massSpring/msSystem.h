@@ -9,7 +9,7 @@
 * let every obj call update, render...
 */
 
-struct { // TODO later...
+struct { // TODO collision
 }collision;
 
 class msSystem

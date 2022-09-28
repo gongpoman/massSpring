@@ -24,6 +24,11 @@ public:
 
 	void addSpring(SpringL* pSpr,bool id);
 
+	//function return netforce which springs exert.
+	glm::vec3 getJointForce();
+	//TODO function return pos where spring linked
+	glm::vec3 getJointPos();
+
 private:
 
 	glm::vec3 jPos; // displacement from pos of mass => joint pos = mass->pos + jPos
@@ -33,9 +38,7 @@ private:
 	std::vector<bool> endId;// endPoint of spring ID : false -> point 1, true -> point 2,
 
 
-	//TODO function return netforce which springs exert.
 	
-	//TODO function return pos where spring linked
 
 
 };

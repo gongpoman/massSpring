@@ -318,7 +318,7 @@ void Ball::render() {
 // 공의 위치에 따라서. spring의 끝 점의 위치가 dependent한 방식으로 짜게 되면.
 // update 할 때 힘을 분리 시키지 않으면 어떤 ball 이 먼저 update 되었는 지에 따라서.
 
-void Ball::ftProcess() {
+void Mass::ftProcess() {
 
     //get all forces generated in joints
 

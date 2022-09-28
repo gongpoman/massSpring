@@ -69,6 +69,7 @@ class SpringL : public Component
 	// no mass no collision
 	// generating force depends on dL
 	// each end point depends on vertex of linked object.
+	// so both points should be linked to move
 public:
 
 	//Shader* shaderID;
@@ -78,6 +79,8 @@ public:
 	virtual ~SpringL();
 	virtual void update();
 	virtual void render();
+
+	void linkJoint(Joint*,bool);
 
 private:
 	//CompType type;
@@ -100,9 +103,11 @@ public :
 	virtual void update() = 0;
 	virtual void render() = 0;
 
-	virtual void ftProcess()=0;
+	void ftProcess();
 
 	glm::vec3 getPosition();
+	void addJoint(Joint*);
+
 protected:
 	glm::vec3 pos;
 	glm::vec3 vel;
@@ -111,6 +116,11 @@ protected:
 
 	glm::vec3 netF; // netForce.
 	glm::vec3 netT; // netTorque.
+
+	float mass;
+	float density;
+
+	std::vector<Joint*> joints;
 
 private : 
 
@@ -148,13 +158,14 @@ protected :
 
 	//CompType type;
 	//unsigned int VAO;
-private:
-	
-	std::vector<Joint*> joints;
+
+
+	// float density;
+	// float mass;
 
 	float radius;
-	float density;
-	float mass;
-	virtual void ftProcess();
+
+private:
+
 	virtual void __drawSetup();
 };

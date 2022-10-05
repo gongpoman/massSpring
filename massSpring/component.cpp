@@ -22,6 +22,8 @@ extern const int SCR_HEIGHT;
 
 extern float deltaTime;
 
+void __vecPrint(glm::vec3);
+
 void __mapBuffer(unsigned int& vbo, void* data, unsigned int size);
 void __project_to_unit_sphere(pmp::SurfaceMesh& mesh);
 pmp::SurfaceMesh __icosahedron();
@@ -201,7 +203,15 @@ void Mass::ftProcess() {
 
     //get all forces generated in joints
 
-    //TODO Force process.
+    std::vector<glm::vec3> jointForce;
+    std::vector<glm::vec3> jointPos;
+
+    for (auto iter = joints.begin(); iter != joints.end(); iter++) {
+        jointForce.push_back((*iter)->getJointForce());
+        jointPos.push_back((*iter)->getJointPos());
+    }
+
+    //TODONOW Force process.
 
     const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
     const glm::vec3 grav_Pos = pos;
@@ -209,6 +219,10 @@ void Mass::ftProcess() {
     glm::vec3 netForce = glm::vec3(0);
 
     netForce += gravity;
+
+    for (std::vector<glm::vec3>::iterator iter = jointForce.begin(); iter != jointForce.end(); iter++) {
+        netForce += (*iter);
+    }
 
     netF = netForce;
 
@@ -360,6 +374,8 @@ void SpringL::update() {
     pos1 = endP[0]->getJointPos();
     pos2 = endP[1]->getJointPos();
 
+    currentLen = glm::length(pos1 - pos2);
+
     //VAO, VBO update for rendering.
     float vertices[] = {
       pos1[0],pos1[1],pos1[2],
@@ -377,6 +393,12 @@ void SpringL::linkJoint(Joint* joint, bool id) {
     currentLen = glm::length(pos1 - pos2);
 }
 
+glm::vec3 SpringL::getSpringForce(bool id) {
+    glm::vec3 f = glm::normalize(pos1 - pos2);
+    f *= elasticity;
+    f *= defaultLen - currentLen;
+    return f;
+}
 
 void __mapBuffer(unsigned int &vbo,void* data, unsigned int size) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -459,4 +481,8 @@ pmp::SurfaceMesh __icosphere(size_t n_subdivisions)
         __project_to_unit_sphere(mesh);
     }
     return mesh;
+}
+
+void __vecPrint(glm::vec3 v) {
+    std::cout << " x : " << v.x << " y : " << v.y << " z : " << v.z << std::endl;
 }

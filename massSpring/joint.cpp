@@ -34,7 +34,11 @@ void Joint::linkSpring(SpringL* pSpr,bool id) {
 glm::vec3 Joint::getJointForce() {
 	glm::vec3 netForce = glm::vec3(0);
 
-	// get force from every spring
+	glm::vec3 force;
+	for (int i = 0; i < springs.size();i++) {
+		force = springs[i]->getSpringForce(endId[i]);
+		netForce += force;
+	}
 
 	return netForce;
 }

@@ -80,12 +80,13 @@ public:
 	//Shader* shaderID;
 
 	SpringL();
-	SpringL(glm::vec3 position1 = glm::vec3(0), glm::vec3 position2 = glm::vec3(0), float ela = 1.0f);
+	SpringL(glm::vec3 position1 = glm::vec3(0), glm::vec3 position2 = glm::vec3(0), float ela = 100.0f);
 	virtual ~SpringL();
 	virtual void update();
 	virtual void render();
 
 	void linkJoint(Joint*,bool);
+	glm::vec3 getSpringForce(bool);
 
 private:
 	//CompType type;
@@ -117,6 +118,10 @@ public :
 	void addJoint(Joint*);
 
 protected:
+
+//	CompType type;
+//	unsigned int VAO;
+
 	glm::vec3 pos;
 	glm::vec3 vel;
 	glm::vec3 acc;
@@ -128,7 +133,7 @@ protected:
 	float mass;
 	float density;
 
-	std::vector<Joint*> joints;
+	std::vector<Joint*> joints; 
 
 private : 
 

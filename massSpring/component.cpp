@@ -86,7 +86,7 @@ Ball::Ball(glm::vec3 position, float r, float d)
     pos = position;
     vel = glm::vec3(0);
     acc = glm::vec3(0);
-
+        
     netF = glm::vec3(0);
     netT = glm::vec3(0);
 
@@ -198,10 +198,9 @@ void FixedPoint::addJoint(Joint* joint) {
     joints.push_back(joint);
 }
 
-
 void Mass::ftProcess() {
-
-    //get all forces generated in joints
+    // with interpolation. 하나의 timestep 대해서 interpolation만 하고.
+    // 여러번 update를 할 지 말지는 msSystem에서 정하는 걸로 하자. 
 
     std::vector<glm::vec3> jointForce;
     std::vector<glm::vec3> jointPos;
@@ -211,7 +210,32 @@ void Mass::ftProcess() {
         jointPos.push_back((*iter)->getJointPos());
     }
 
-    //TODONOW Force process.
+
+    const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
+    const glm::vec3 grav_Pos = pos;
+
+    glm::vec3 netForce = glm::vec3(0);
+
+    netForce += gravity;
+
+    for (std::vector<glm::vec3>::iterator iter = jointForce.begin(); iter != jointForce.end(); iter++) {
+        netForce += (*iter);
+    }
+
+    netF = netForce;
+}
+/*
+void Mass::ftProcess() { // no Interpolation
+
+
+    std::vector<glm::vec3> jointForce;
+    std::vector<glm::vec3> jointPos;
+
+    for (auto iter = joints.begin(); iter != joints.end(); iter++) {
+        jointForce.push_back((*iter)->getJointForce());
+        jointPos.push_back((*iter)->getJointPos());
+    }
+
 
     const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
     const glm::vec3 grav_Pos = pos;
@@ -226,10 +250,10 @@ void Mass::ftProcess() {
 
     netF = netForce;
 
-    //TODO  Torque process.
-
-
 }
+*/
+
+
 glm::vec3 Mass::getPosition() {
     return pos;
 }

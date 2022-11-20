@@ -6,8 +6,10 @@
 #include "msSystem.h"
 #include "component.h"
 
-msSystem::msSystem() {
 
+msSystem::msSystem(glm::vec3 gPos, float dt) {
+	globalPos = gPos;
+	deltaTime = dt;
 }
 msSystem::~msSystem() {
 	Component* delC;
@@ -55,7 +57,7 @@ void msSystem::renderAll() {
 	std::cout << "render start !!! ==============================================" << std::endl;
 	// render components
 	for (auto iter = components.begin();iter!=components.end();iter++) {
-		(*iter)->render();
+		(*iter)->render(globalPos);
 		
 	}
 	std::cout << "render end!! =============================================== " << std::endl;

@@ -27,6 +27,9 @@ public:
 	//TODO function return pos where spring linked
 	glm::vec3 getJointPos();
 
+	glm::vec3 getJointCompVel();
+
+	float getCompMass();
 private:
 
 	glm::vec3 jPos; // displacement from pos of mass => joint pos = mass->pos + jPos

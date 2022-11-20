@@ -27,7 +27,7 @@ public:
 
 	Shader* shader;
 	virtual void update() = 0;
-	virtual void render() = 0;
+	virtual void render(glm::vec3 globalPos = glm::vec3(0)) = 0;
 
 	CompType getType();
 
@@ -52,7 +52,7 @@ public:
 	FixedPoint(glm::vec3 position);
 	virtual ~FixedPoint();
 	virtual void update();
-	virtual void render();
+	virtual void render(glm::vec3 globalPos = glm::vec3(0));
 
 	glm::vec3 getPosition();
 
@@ -80,10 +80,10 @@ public:
 	//Shader* shaderID;
 
 	SpringL();
-	SpringL(glm::vec3 position1 = glm::vec3(0), glm::vec3 position2 = glm::vec3(0), float ela = 100.0f);
+	SpringL(glm::vec3 position1 = glm::vec3(0), glm::vec3 position2 = glm::vec3(0), float ela = 15.0f);
 	virtual ~SpringL();
 	virtual void update();
-	virtual void render();
+	virtual void render(glm::vec3 globalPos = glm::vec3(0));
 
 	void linkJoint(Joint*,bool);
 	glm::vec3 getSpringForce(bool);
@@ -99,6 +99,7 @@ private:
 	glm::vec3 pos1;
 	glm::vec3 pos2;
 
+
 	Joint* endP[2];
 
 
@@ -110,12 +111,16 @@ public :
 	Mass();
 	virtual ~Mass();
 	virtual void update() = 0;
-	virtual void render() = 0;
+	virtual void render(glm::vec3 globalPos = glm::vec3(0)) = 0;
 
 	void ftProcess();
 
 	glm::vec3 getPosition();
+	glm::vec3 getVelocity();
+
 	void addJoint(Joint*);
+	float getMass();
+	void setIsDamped(bool);
 
 protected:
 
@@ -132,6 +137,8 @@ protected:
 
 	float mass;
 	float density;
+	
+	bool isDamped;
 
 	std::vector<Joint*> joints; 
 
@@ -154,7 +161,7 @@ public:
 
 
 	virtual void update();
-	virtual void render();
+	virtual void render(glm::vec3 globalPos = glm::vec3(0));
 
 protected : 
 
@@ -177,6 +184,8 @@ protected :
 	// float mass;
 
 	float radius;
+
+	bool simpleRender;
 
 private:
 

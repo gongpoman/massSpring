@@ -31,6 +31,13 @@ void Joint::linkSpring(SpringL* pSpr,bool id) {
 	pSpr->linkJoint(this,id);
 }
 
+float Joint::getCompMass() {
+	if (compo->getType() == MASS)
+		return static_cast<Mass*>(compo)->getMass();
+	else
+		return -1.0f;
+}
+
 glm::vec3 Joint::getJointForce() {
 	glm::vec3 netForce = glm::vec3(0);
 
@@ -49,4 +56,13 @@ glm::vec3 Joint::getJointPos() {
 	else if (compo->getType() == MASS)
 		compoCenter = static_cast<Mass*>(compo)->getPosition();
 	return compoCenter + jPos;
+}
+glm::vec3 Joint::getJointCompVel() {
+	if (compo->getType() == FP)
+		return glm::vec3(0);
+	else if (compo->getType() == MASS) {
+		return static_cast<Mass*>(compo)->getVelocity();
+	}
+	else
+		return glm::vec3(0);
 }

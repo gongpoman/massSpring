@@ -64,6 +64,7 @@ FixedPoint::~FixedPoint()
 Mass::Mass() {
     std::cout << "MASS!!" << std::endl;
     type = MASS;
+    isDamped = false;
 }
 Mass::~Mass() {
 
@@ -75,6 +76,7 @@ Mass::~Mass() {
 
     std::cout << "Mass~" << std::endl;
 }
+
 
 Ball::Ball()
 {
@@ -168,12 +170,12 @@ void FixedPoint::__drawSetup() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void FixedPoint::render() {
+void FixedPoint::render(glm::vec3 globalPos ) {
     shader->use();
     glBindVertexArray(VAO);
 
     glm::mat4 worldMat = glm::mat4(1.0f);
-    worldMat = glm::translate(worldMat, pos);
+    worldMat = glm::translate(worldMat, pos + globalPos);
 
     glm::mat4 viewMat = cam.getViewMatrix();
     glm::mat4 projMat = glm::perspective(glm::radians(cam.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -197,34 +199,61 @@ glm::vec3 FixedPoint::getPosition() {
 void FixedPoint::addJoint(Joint* joint) {
     joints.push_back(joint);
 }
+/*
+void Mass::ftProcess() {// TODONOW. orientation...
+    // interpolation을 결국에는 해야되는데. 여러번 자르고, update를 몇번에 걸쳐서 하고 등등 이런 어떻게 할 지는 나중에 생각하고
+    //일단 방향, 회전부터.
+    //근데 일단 이렇게 평균을 낸 것을 이용해서 update를 여러번 하는 것이 가장 나은 것 같은데?
 
-void Mass::ftProcess() {
     // with interpolation. 하나의 timestep 대해서 interpolation만 하고.
     // 여러번 update를 할 지 말지는 msSystem에서 정하는 걸로 하자. 
 
+    const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
+
     std::vector<glm::vec3> jointForce;
     std::vector<glm::vec3> jointPos;
+    glm::vec3 netTorque1(0);
 
     for (auto iter = joints.begin(); iter != joints.end(); iter++) {
-        jointForce.push_back((*iter)->getJointForce());
-        jointPos.push_back((*iter)->getJointPos());
+        const glm::vec3 jF = (*iter)->getJointForce();
+        const glm::vec3 jP = (*iter)->getJointPos();
+        jointForce.push_back(jF);
+        jointPos.push_back(jP);
+        netTorque1 += glm::cross(jP, jF);
     }
 
+    glm::vec3 netForce1 = glm::vec3(0);
 
-    const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
-    const glm::vec3 grav_Pos = pos;
-
-    glm::vec3 netForce = glm::vec3(0);
-
-    netForce += gravity;
-
+    netForce1 += gravity;
     for (std::vector<glm::vec3>::iterator iter = jointForce.begin(); iter != jointForce.end(); iter++) {
-        netForce += (*iter);
+        netForce1 += (*iter);
     }
 
-    netF = netForce;
+    // get next step F,torque
+    glm::vec3 netForce2(0);
+    glm::vec3 netTorque2(0);
+
+    //tempporary update.
+    glm::vec3 tempDPos;
+    void* tempOri;
+    tempDPos = deltaTime * vel + 0.5f * deltaTime * deltaTime * netF / mass;
+    pos += tempDPos;
+    //get next step f,t
+    for (auto iter = joints.begin(); iter != joints.end(); iter++) {
+        const glm::vec3 jF = (*iter)->getJointForce();
+        const glm::vec3 jP = (*iter)->getJointPos();
+        jointForce.push_back(jF);
+        jointPos.push_back(jP);
+        netTorque2 += glm::cross(jP, jF);
+    }
+
+    // return to current state
+    pos -= tempDPos;
+
+    netF = 0.5f*(netForce1 + netForce2);
+
 }
-/*
+*/
 void Mass::ftProcess() { // no Interpolation
 
 
@@ -250,15 +279,29 @@ void Mass::ftProcess() { // no Interpolation
 
     netF = netForce;
 
+    if (isDamped) {
+        float damp = 0.01f;
+        netF -= damp * mass * vel;
+    }
 }
-*/
 
 
+glm::vec3 Mass::getVelocity() {
+    return vel;
+}
 glm::vec3 Mass::getPosition() {
     return pos;
 }
 void Mass::addJoint(Joint* joint) {
     joints.push_back(joint);
+}
+
+float Mass::getMass() {
+    return mass;
+}
+
+void Mass::setIsDamped(bool b) {
+    isDamped = b;
 }
 
 void Ball::__drawSetup() {
@@ -294,13 +337,13 @@ void Ball::__drawSetup() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
  
 }
-void Ball::render() {
+void Ball::render(glm::vec3 globalPos) {
     
     shader->use();
     glBindVertexArray(VAO);
 
     glm::mat4 worldMat = glm::mat4(1.0f);
-    worldMat = glm::translate(worldMat, pos);
+    worldMat = glm::translate(worldMat, pos + globalPos);
 
     glm::mat4 viewMat = cam.getViewMatrix();
     glm::mat4 projMat = glm::perspective(glm::radians(cam.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -320,9 +363,8 @@ void Ball::render() {
 void Ball::update() {
     
     acc = netF / mass;
-
-    pos += deltaTime * vel + 0.5f * deltaTime * deltaTime * acc;
     vel += deltaTime * acc;
+    pos += deltaTime * vel;
 
     std::cout << pos.x << " : " << pos.y << " : " << pos.z << std::endl;
 }
@@ -377,11 +419,12 @@ void SpringL::__drawSetup() {
 
 }
 
-void SpringL::render() {
+void SpringL::render(glm::vec3 globalPos) {
     shader->use();
     glBindVertexArray(VAO);
 
     glm::mat4 worldMat = glm::mat4(1.0f);
+    worldMat = glm::translate(worldMat, globalPos);
 
     glm::mat4 viewMat = cam.getViewMatrix();
     glm::mat4 projMat = glm::perspective(glm::radians(cam.zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -409,18 +452,20 @@ void SpringL::update() {
 }
 void SpringL::linkJoint(Joint* joint, bool id) {
     endP[id] = joint;
-    if (!id)
-        pos1 = joint->getJointPos();
-    else
-        pos2 = joint->getJointPos();
 
+    if (!id) {
+        pos1 = joint->getJointPos();
+    }
+    else {
+        pos2 = joint->getJointPos();
+    }
     currentLen = glm::length(pos1 - pos2);
 }
 
 glm::vec3 SpringL::getSpringForce(bool id) {
-    glm::vec3 f = glm::normalize(pos1 - pos2);
+    glm::vec3 f = (id)? glm::normalize(pos1 - pos2) :glm::normalize(pos2 - pos1);
     f *= elasticity;
-    f *= defaultLen - currentLen;
+    f *= glm::abs(defaultLen - currentLen);
     return f;
 }
 

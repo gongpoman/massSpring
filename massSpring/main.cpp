@@ -18,17 +18,19 @@ extern const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;    //REF :  const global va
 
 float deltaTime= 0.0f;
 
-Camera cam(glm::vec3(0.0f,0.0f,10.0f));
+Camera cam(glm::vec3(0.0f,0.0f,-5.0f));
 
 msSystem MSSystem1(glm::vec3(5,0,-5),60.0f);
 msSystem MSSystem2(glm::vec3(-5, 0, -5), 60.0f);
 msSystem MSSystem3(glm::vec3(5,0,0),60.0f);
 msSystem MSSystem4(glm::vec3(-5, 0, 0), 60.0f);
-
 void setScene1();
 void setScene2();
 void setScene3();
 void setScene4();
+
+msSystem MSSystemCloth(glm::vec3(0, 0, -10), 60.0f);
+void setClothScene1(float interval = 0.25, int vNode=10, int hNode=10, unsigned short mode = 0);
 
 
 // setScene function 안에서는 msSystem안에서의 local좌표계가 있다고 생각하고 거기서 좌표를 설정해준다.
@@ -74,9 +76,12 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     setScene1();
+    /*
     setScene2();
     setScene3();
     setScene4();
+    */
+    setClothScene1(1,5,5,0);
 
 	while (!glfwWindowShouldClose(window)) {
         std::cout << "loop start!!!!////////////////////////////////////////////////////////////////////////////////////////////////" << std::endl;
@@ -86,6 +91,9 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         MSSystem1.updateAll();
+        MSSystem1.renderAll();
+        /*
+        MSSystem1.updateAll();
         MSSystem2.updateAll();
         MSSystem3.updateAll();
         MSSystem4.updateAll();
@@ -94,6 +102,10 @@ int main() {
         MSSystem2.renderAll();
         MSSystem3.renderAll();
         MSSystem4.renderAll();
+        */
+
+        MSSystemCloth.updateAll();
+        MSSystemCloth.renderAll();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -155,7 +167,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 void setScene1() {
     // 공 만듦
     Ball* ball1 = new Ball(glm::vec3(1.0f, -1.0f, 0.0f), 1.0f);
-    ball1->setIsDamped(true);
+    ball1->setDampingRatio(0.01);
     MSSystem1.addComponent(ball1);
     //spring 만듦. 이때 사실 위치 받는데. 크게 의미는 없고 이걸로 default 길이 정해짐.
     SpringL* spr1 = new SpringL(glm::vec3(-3.0f, 0.0f, 0.0f), glm::vec3(-4.0f, 0.0f, 0.0f));
@@ -250,9 +262,9 @@ void setScene3() {
 
 void setScene4() {
 
-    Ball* ball1 = new Ball(glm::vec3(1.0f, -1.0f, 0.0f), 1.0f, 0.2f);
+    Ball* ball1 = new Ball(glm::vec3(1.0f, -1.0f, 0.0f), 1.0f, 0.2f, true);
     MSSystem4.addComponent(ball1);
-
+    
     SpringL* spr1 = new SpringL(glm::vec3(1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), 30.0f);
     MSSystem4.addComponent(spr1);
 
@@ -267,7 +279,7 @@ void setScene4() {
 
 
 
-    Ball* ball2 = new Ball(glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, 0.2f);
+    Ball* ball2 = new Ball(glm::vec3(0.0f, -1.0f, 0.0f), 1.0f, 0.2f, true);
     MSSystem4.addComponent(ball2);
 
     SpringL* spr2 = new SpringL(glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f, -1.0f, 0.0f), 30.0f);
@@ -280,7 +292,7 @@ void setScene4() {
 
 
 
-    Ball* ball3 = new Ball(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f, 0.2f);
+    Ball* ball3 = new Ball(glm::vec3(0.0f, 0.0f, 1.0f), 1.0f, 0.2f, true);
     MSSystem4.addComponent(ball3);
 
     SpringL* spr3 = new SpringL(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, -1.0f, 0.0f), 30.0f);
@@ -292,7 +304,7 @@ void setScene4() {
     j1_On_Ball1->linkSpring(spr3, 1);
 
 
-    Ball* ball4 = new Ball(glm::vec3(-1.0f, 0.0f, 1.0f), 1.0f, 0.2f);
+    Ball* ball4 = new Ball(glm::vec3(-1.0f, 0.0f, 1.0f), 1.0f, 0.2f, true);
     MSSystem4.addComponent(ball4);
 
     SpringL* spr4 = new SpringL(glm::vec3(-1.0f, 0.0f, 1.0f), glm::vec3(0.0f,0.0f, 0.0f), 30.0f);
@@ -319,4 +331,82 @@ void setScene4() {
 
     j1_On_Ball4->linkSpring(spr6, 0);
     j1_On_Ball3->linkSpring(spr6, 1);
+}
+
+
+void setClothScene1(float interval,int vNode,int hNode,unsigned short mode) {
+
+    std::vector<Ball*> clothNodes;
+    std::vector<Joint*> joints;
+
+ 
+    // 공 만듦
+    float ballRadi = 1.0f;
+    float ballDens = 0.3f;
+
+    float indent = - (hNode - 1) * interval / 2.0f;
+
+    for (int i = 0; i < vNode; i++) {
+        for (int j = 0; j < hNode; j++) {
+            glm::vec3 nodePos(indent + j * interval,0 - i*interval ,0);
+            Ball* ball = new Ball(nodePos, ballRadi, ballDens, true);
+            ball->setDampingRatio(0.5);
+            MSSystemCloth.addComponent(ball);
+            Joint* jo = new Joint(ball, glm::vec3(0));
+            clothNodes.push_back(ball);
+            joints.push_back(jo);
+        }
+    }
+
+    // fixed point 만듦.
+
+    FixedPoint* fp1 = new FixedPoint(glm::vec3(indent, interval/2.0f, 0.0f));
+    MSSystemCloth.addComponent(fp1);
+    FixedPoint* fp2 = new FixedPoint(glm::vec3(indent + (hNode - 1) * interval, interval/2.0f, 0.0f));
+    MSSystemCloth.addComponent(fp2);
+
+    Joint* fpJ1 = new Joint(fp1);
+    Joint* fpJ2 = new Joint(fp2);
+
+    SpringL* fp_To_Cloth1 = new SpringL(fp1->getPosition(),clothNodes[0]->getPosition(),600.0f);
+    MSSystemCloth.addComponent(fp_To_Cloth1);
+    SpringL* fp_To_Cloth2 = new SpringL(fp2->getPosition(),clothNodes[hNode-1]->getPosition(),600.0f);
+    MSSystemCloth.addComponent(fp_To_Cloth2);
+
+    // joint에 spring을 연결한다.spring의 끝단에 joint를 연결하는건 안된다.
+    fpJ1->linkSpring(fp_To_Cloth1, 0);
+    joints[0]->linkSpring(fp_To_Cloth1, 1);
+
+    fpJ2->linkSpring(fp_To_Cloth2, 0);
+    joints[hNode-1]->linkSpring(fp_To_Cloth2, 1);
+
+    
+    // spring 
+
+    float ela = 30.0f;
+    
+    //horizontal vertical
+
+    for (int i = 0; i < vNode; i++) {
+        for (int j = 0; j < hNode-1; j++) {
+            SpringL* spr = new SpringL(glm::vec3(0), glm::vec3(interval,0,0), ela); // spring 나중에 joint랑 link할 때 initial pos가 정해지고, 생성할 때는 default길이만 정해지니 똑같이 줘도 됨.
+            MSSystemCloth.addComponent(spr);
+            joints[i * vNode + j]->linkSpring(spr, 0);
+            joints[i * vNode + j + 1]->linkSpring(spr, 1);
+        }
+    }
+    
+    for (int i = 0; i < vNode - 1; i++) {
+        for (int j = 0; j < hNode; j++) {
+            SpringL* spr = new SpringL(glm::vec3(0), glm::vec3(interval, 0, 0), ela);
+            MSSystemCloth.addComponent(spr);
+            joints[i * vNode + j]->linkSpring(spr, 0);
+            joints[(i+1) * vNode + j ]->linkSpring(spr, 1);
+        }
+    }
+    
+    // diagonal
+
+
+
 }

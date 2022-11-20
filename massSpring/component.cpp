@@ -64,7 +64,7 @@ FixedPoint::~FixedPoint()
 Mass::Mass() {
     std::cout << "MASS!!" << std::endl;
     type = MASS;
-    isDamped = false;
+    dampingRatio = -1.0f;
 }
 Mass::~Mass() {
 
@@ -82,7 +82,7 @@ Ball::Ball()
 {
     __drawSetup();
 }
-Ball::Ball(glm::vec3 position, float r, float d)
+Ball::Ball(glm::vec3 position, float r, float d,bool renderSmall)
 {
     std::cout << "Ball Init...!!!" << std::endl;
     pos = position;
@@ -91,6 +91,8 @@ Ball::Ball(glm::vec3 position, float r, float d)
         
     netF = glm::vec3(0);
     netT = glm::vec3(0);
+
+    simpleRender = renderSmall;
 
     radius = r;
     density = d;
@@ -265,7 +267,6 @@ void Mass::ftProcess() { // no Interpolation
         jointPos.push_back((*iter)->getJointPos());
     }
 
-
     const glm::vec3 gravity = mass * glm::vec3(0, -9.8f, 0);
     const glm::vec3 grav_Pos = pos;
 
@@ -279,9 +280,8 @@ void Mass::ftProcess() { // no Interpolation
 
     netF = netForce;
 
-    if (isDamped) {
-        float damp = 0.01f;
-        netF -= damp * mass * vel;
+    if (dampingRatio>=FLT_EPSILON) {
+        netF -= dampingRatio * mass * vel;
     }
 }
 
@@ -300,22 +300,25 @@ float Mass::getMass() {
     return mass;
 }
 
-void Mass::setIsDamped(bool b) {
-    isDamped = b;
+void Mass::setDampingRatio(float damp) {
+    dampingRatio = damp;
 }
 
 void Ball::__drawSetup() {
 
+    int fold = (radius < 0.51 || simpleRender) ? 0 : 2;
     shader = new Shader("resources/shader/sphere_vs.txt", "resources/shader/sphere_fs.txt");
-    pmp::SurfaceMesh sphere = __icosphere(2);
+    pmp::SurfaceMesh sphere = __icosphere(fold);
     std::vector<float> vertices = std::vector<float>();
+
+    float renderRadi = (simpleRender) ? 0.1 : radius;
 
     for (auto f : sphere.faces()) {
         for (auto v : sphere.vertices(f)) {
             auto p = sphere.position(v);
-            vertices.push_back(p[0]*radius);
-            vertices.push_back(p[1] * radius);
-            vertices.push_back(p[2] * radius);
+            vertices.push_back(p[0]* renderRadi);
+            vertices.push_back(p[1] * renderRadi);
+            vertices.push_back(p[2] * renderRadi);
         }
     }
 
@@ -365,8 +368,6 @@ void Ball::update() {
     acc = netF / mass;
     vel += deltaTime * acc;
     pos += deltaTime * vel;
-
-    std::cout << pos.x << " : " << pos.y << " : " << pos.z << std::endl;
 }
 
 
@@ -466,6 +467,8 @@ glm::vec3 SpringL::getSpringForce(bool id) {
     glm::vec3 f = (id)? glm::normalize(pos1 - pos2) :glm::normalize(pos2 - pos1);
     f *= elasticity;
     f *= glm::abs(defaultLen - currentLen);
+
+    std::cout<<" force : "  << f.x << " : " << f.y << " : " << f.z << "force : " << glm::length(f) << std::endl;
     return f;
 }
 

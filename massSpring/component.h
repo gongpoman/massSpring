@@ -120,7 +120,7 @@ public :
 
 	void addJoint(Joint*);
 	float getMass();
-	void setIsDamped(bool);
+	void setDampingRatio(float);
 
 protected:
 
@@ -138,7 +138,7 @@ protected:
 	float mass;
 	float density;
 	
-	bool isDamped;
+	float dampingRatio;
 
 	std::vector<Joint*> joints; 
 
@@ -156,7 +156,7 @@ public:
 	//Shader* shaderID;
 
 	Ball();
-	Ball(glm::vec3 position,float r = 1.0f, float d = 1.0f);
+	Ball(glm::vec3 position,float r = 1.0f, float d = 1.0f, bool renderSmall = false);
 	virtual ~Ball();
 
 

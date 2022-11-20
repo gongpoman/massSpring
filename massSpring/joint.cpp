@@ -43,6 +43,7 @@ glm::vec3 Joint::getJointForce() {
 
 	glm::vec3 force;
 	for (int i = 0; i < springs.size();i++) {
+		std::cout << i;
 		force = springs[i]->getSpringForce(endId[i]);
 		netForce += force;
 	}
